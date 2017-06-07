@@ -63,7 +63,7 @@ namespace exportDataToXlsx
                             for (int i = 0; i < reader.FieldCount; i++)
                             {
                                 str.Append("\""+reader.GetName(i)+"\"");
-                                if (i!=(reader.FieldCount-1))
+                                if (i<=(reader.FieldCount-1))
                                 str.Append(dataSeparator);
                             }
                             writer.WriteLine(str.ToString());
@@ -72,11 +72,12 @@ namespace exportDataToXlsx
                             {
                                 for (int i = 0; i < reader.FieldCount; i++)
                                 {
-                                    str.Append(reader[i]);
-                                    if (i != (reader.FieldCount - 1))
+                                    str.Append("\""+reader[i]+ "\"");
+                                    if (i <= (reader.FieldCount - 1))
                                         str.Append(dataSeparator);
                                 }
-                                writer.WriteLine("\""+str.ToString() + "\"");
+                                writer.WriteLine(str.ToString());
+                                str.Clear();
                             }
                             Write("Result file is written successfully!");
                         }
@@ -101,6 +102,7 @@ namespace exportDataToXlsx
 
             }
 
+            Console.WriteLine("Press any key...");
             Console.ReadKey();
         }
         
