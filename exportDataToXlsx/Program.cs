@@ -18,6 +18,8 @@ namespace exportDataToXlsx
             string dbName = ConfigurationManager.AppSettings["DbName"];
             string selectCommand = ConfigurationManager.AppSettings["selectCommand"];
             string dataSeparator = ConfigurationManager.AppSettings["dataSeparator"];
+            bool addColumnNames;
+            bool.TryParse(ConfigurationManager.AppSettings["AddColumNames"], out addColumnNames);
 
             if (dbName==null)
             {
@@ -41,6 +43,9 @@ namespace exportDataToXlsx
             Write($"Read parameters are: dbname={dbName}, selectCommand={selectCommand}");
             Write($"Db file name = {dbPath}");
 
+            Write($"addColumnNames = {addColumnNames}, or it is not present in config. Program will not add column names to result file.");
+
+            Write($"dataSeparator = '{dataSeparator}'");
             try
             {
                 using (SQLiteConnection connection = new SQLiteConnection())
@@ -57,16 +62,20 @@ namespace exportDataToXlsx
                         StreamWriter writer = null;
                         try
                         {
-                            writer = new StreamWriter (File.OpenWrite(Path.Combine(currentDir, "result.csv")),Encoding.UTF8);
+                            writer = new StreamWriter (new FileStream(Path.Combine(currentDir, "result.csv"), FileMode.Append, FileAccess.Write),Encoding.UTF8);
                             Write("Result file is opened successfully!");
                             StringBuilder str = new StringBuilder();
-                            for (int i = 0; i < reader.FieldCount; i++)
+                            if (addColumnNames == true)
                             {
-                                str.Append("\""+reader.GetName(i)+"\"");
-                                if (i<=(reader.FieldCount-1))
-                                str.Append(dataSeparator);
+                                for (int i = 0; i < reader.FieldCount; i++)
+                                {
+                                    str.Append("\"" + reader.GetName(i) + "\"");
+                                    if (i <= (reader.FieldCount - 1))
+                                        str.Append(dataSeparator);
+                                }
+
+                                writer.WriteLine(str.ToString());
                             }
-                            writer.WriteLine(str.ToString());
                             str.Clear();
                             while (reader.Read())
                             {
@@ -80,6 +89,8 @@ namespace exportDataToXlsx
                                 str.Clear();
                             }
                             Write("Result file is written successfully!");
+                            writer.Close();
+                            Write("Result file is closed successfully!");
                         }
                         catch(IOException ex)
                         {
